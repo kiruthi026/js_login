@@ -1,29 +1,43 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { z } from 'zod';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Link } from 'react-router-dom';
-import logo from '../assets/logo.png';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import loginimg from '../assets/loginimg.jpg';
-import {  useQuery } from '@tanstack/react-query';
-import { loginUser } from '@/api/auth';
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { z } from "zod";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Link } from "react-router-dom";
+import logo from "../assets/logo.png";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import loginimg from "../assets/loginimg.jpg";
+import { useQuery, useIsFetching, useIsMutating } from "@tanstack/react-query";
+import { loginUser } from "@/api/auth";
 
 const loginSchema = z.object({
-  email: z.string().regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Invalid email'),
-  password: z.string().min(6, 'Password must be at least 6 characters long').regex(/^(?=.*[A-Z])(?=.*[!@#$%^&*()_+\-={}[\]:;'",.<>?]).*$/, 'Password must contain at least 1 uppercase letter and 1 special character'),
+  email: z.string().regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, "Invalid email"),
+  password: z
+    .string()
+    .min(6, "Password must be at least 6 characters long")
+    .regex(
+      /^(?=.*[A-Z])(?=.*[!@#$%^&*()_+\-={}[\]:;'",.<>?]).*$/,
+      "Password must contain at least 1 uppercase letter and 1 special character"
+    ),
 });
 
 const EMAIL_LENGTH = 20;
 
 function Login() {
+  const Fatching = useIsFetching();
+  const mutate = useIsMutating();
   const navigate = useNavigate();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [emailError, setEmailError] = useState('');
-  const [passwordError, setPasswordError] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [emailError, setEmailError] = useState("");
+  const [passwordError, setPasswordError] = useState("");
 
   // Set up the mutation hook
   // const mutation = useMutation(loginUser, {
@@ -37,30 +51,30 @@ function Login() {
   //     console.error('Login error:', error.message);
   //   },
   // });
-  
-  const { data:MasterList } = useQuery({
-    queryKey: ['repoData'],
-    queryFn: () =>loginUser()
-  })
 
-  useEffect(()=>{
-console.log(MasterList,"MasterList")
-  },[MasterList])
+  const { data: MasterList } = useQuery({
+    queryKey: ["repoData"],
+    queryFn: () => loginUser(),
+  });
+
+  useEffect(() => {
+    console.log(MasterList, "MasterList");
+  }, [MasterList]);
 
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = e.target;
     if (value.length > EMAIL_LENGTH) {
-      setEmailError('Email must not exceed 20 characters');
+      setEmailError("Email must not exceed 20 characters");
     } else {
       setEmail(value);
-      setEmailError('');
+      setEmailError("");
     }
   };
 
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = e.target;
     setPassword(value);
-    setPasswordError('');
+    setPasswordError("");
   };
 
   // const handleClick = () => {
@@ -90,19 +104,47 @@ console.log(MasterList,"MasterList")
               </div>
             </CardTitle>
           </CardHeader>
-          <CardContent className='space-y-2'>
+          <CardContent className="space-y-2">
             <div className="grid gap-2 items-start space-y-2 text-purple-700">
-              <Label htmlFor="email" required>Email</Label>
-              <Input id="email" type="email" className='text-sm' placeholder="m@gmail.com" value={email} onChange={handleEmailChange} />
-              {emailError && <div className="text-red-500 text-sm">{emailError}</div>}
-            </div><br />
-            <div className="grid gap-2 items-start space-y-2 text-purple-700">
-              <Label htmlFor="password" required>Password</Label>
-              <Input id="password" type="password" placeholder="password" value={password} onChange={handlePasswordChange} />
-              {passwordError && <div className="text-red-500 text-sm">{passwordError}</div>}
+              <Label htmlFor="email" required>
+                Email
+              </Label>
+              <Input
+                id="email"
+                type="email"
+                className="text-sm"
+                placeholder="m@gmail.com"
+                value={email}
+                onChange={handleEmailChange}
+              />
+              {emailError && (
+                <div className="text-red-500 text-sm">{emailError}</div>
+              )}
             </div>
-            <Link to="/ForgetPass" className="w-full flex justify-end items-end underline underline-offset-4 text-sm hover:text-primary bg-transparent text-blue-600 mt-2">Forgot Password?</Link>
+            <br />
+            <div className="grid gap-2 items-start space-y-2 text-purple-700">
+              <Label htmlFor="password" required>
+                Password
+              </Label>
+              <Input
+                id="password"
+                type="password"
+                placeholder="password"
+                value={password}
+                onChange={handlePasswordChange}
+              />
+              {passwordError && (
+                <div className="text-red-500 text-sm">{passwordError}</div>
+              )}
+            </div>
+            <Link
+              to="/ForgetPass"
+              className="w-full flex justify-end items-end underline underline-offset-4 text-sm hover:text-primary bg-transparent text-blue-600 mt-2"
+            >
+              Forgot Password?
+            </Link>
           </CardContent>
+          {(Fatching > 0 || mutate > 0) && "Loading"}
           {/* <CardFooter className='flex justify-between'>
             <Button className="w-full" onClick={handleClick} disabled={mutation.isLoading}>
               {mutation.isLoading ? 'Signing in...' : 'Sign in'}
@@ -110,10 +152,16 @@ console.log(MasterList,"MasterList")
           </CardFooter>
           {mutation.isError && <div className="text-red-500 text-sm">Error: {mutation.error.message}</div>} */}
           <CardFooter className="flex justify-center">
-            <h2 className='text-sm mr-1'>Don't have an account?</h2>
-            <Link to="/Register" className="bg-transparent text-blue-600 text-sm">Sign up</Link>
+            <h2 className="text-sm mr-1">Don't have an account?</h2>
+            <Link
+              to="/Register"
+              className="bg-transparent text-blue-600 text-sm"
+            >
+              Sign up
+            </Link>
           </CardFooter>
         </Card>
+
         <style>
           {`
             body {
