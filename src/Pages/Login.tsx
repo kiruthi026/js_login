@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
@@ -8,10 +8,12 @@ import logo from '../assets/logo.png';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import loginimg from '../assets/loginimg.jpg';
+import {  useQuery } from '@tanstack/react-query';
+import { loginUser } from '@/api/auth';
 
 const loginSchema = z.object({
   email: z.string().regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Invalid email'),
-  password: z.string().min(6, 'Password must be at least 6 characters long').regex(/^(?=.*[A-Z])(?=.*[!@#$%^&*()_+\-={}[\]:;'",.<>?]).*$/, 'Password must contain atleast 1 uppercase letter and 1 special character'),
+  password: z.string().min(6, 'Password must be at least 6 characters long').regex(/^(?=.*[A-Z])(?=.*[!@#$%^&*()_+\-={}[\]:;'",.<>?]).*$/, 'Password must contain at least 1 uppercase letter and 1 special character'),
 });
 
 const EMAIL_LENGTH = 20;
@@ -22,6 +24,28 @@ function Login() {
   const [password, setPassword] = useState('');
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
+
+  // Set up the mutation hook
+  // const mutation = useMutation(loginUser, {
+  //   onSuccess: (data) => {
+  //     // Handle successful login
+  //     localStorage.setItem('token', data.token);
+  //     navigate('/home');
+  //   },
+  //   onError: (error) => {
+  //     // Handle login error
+  //     console.error('Login error:', error.message);
+  //   },
+  // });
+  
+  const { data:MasterList } = useQuery({
+    queryKey: ['repoData'],
+    queryFn: () =>loginUser()
+  })
+
+  useEffect(()=>{
+console.log(MasterList,"MasterList")
+  },[MasterList])
 
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = e.target;
@@ -39,22 +63,21 @@ function Login() {
     setPasswordError('');
   };
 
-  const handleClick = () => {
-    try {
-      loginSchema.parse({ email, password });
-      navigate("/Home");
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        error.errors.forEach(err => {
-          if (err.path[0] === 'email') {
-            setEmailError(err.message);
-          } else if (err.path[0] === 'password') {
-            setPasswordError(err.message);
-          }
-        });
-      }
-    }
-  };
+  // const handleClick = () => {
+  //   try {
+  //     loginSchema.parse({ email, password });
+  //   } catch (error) {
+  //     if (error instanceof z.ZodError) {
+  //       error.errors.forEach(err => {
+  //         if (err.path[0] === 'email') {
+  //           setEmailError(err.message);
+  //         } else if (err.path[0] === 'password') {
+  //           setPasswordError(err.message);
+  //         }
+  //       });
+  //     }
+  //   }
+  // };
 
   return (
     <div className="flex items-center justify-center h-screen">
@@ -70,22 +93,25 @@ function Login() {
           <CardContent className='space-y-2'>
             <div className="grid gap-2 items-start space-y-2 text-purple-700">
               <Label htmlFor="email" required>Email</Label>
-              <Input id="email" type="email"className='text-sm' placeholder="m@gmail.com" value={email} onChange={handleEmailChange} />
+              <Input id="email" type="email" className='text-sm' placeholder="m@gmail.com" value={email} onChange={handleEmailChange} />
               {emailError && <div className="text-red-500 text-sm">{emailError}</div>}
-            </div><br/>
-            <div className="grid gap-2 items-start space-y-2 text-purple-700 ">
+            </div><br />
+            <div className="grid gap-2 items-start space-y-2 text-purple-700">
               <Label htmlFor="password" required>Password</Label>
               <Input id="password" type="password" placeholder="password" value={password} onChange={handlePasswordChange} />
               {passwordError && <div className="text-red-500 text-sm">{passwordError}</div>}
             </div>
-            <Link to="/ForgetPass" className="w-full flex justify-end items-end underline underline-offset-4  text-sm hover:text-primary bg-transparent text-blue-600 mt-2">Forgot Password?</Link>
+            <Link to="/ForgetPass" className="w-full flex justify-end items-end underline underline-offset-4 text-sm hover:text-primary bg-transparent text-blue-600 mt-2">Forgot Password?</Link>
           </CardContent>
-          <CardFooter className='flex justify-between'>
-            <Button className="w-full" onClick={handleClick}>Sign in</Button>
+          {/* <CardFooter className='flex justify-between'>
+            <Button className="w-full" onClick={handleClick} disabled={mutation.isLoading}>
+              {mutation.isLoading ? 'Signing in...' : 'Sign in'}
+            </Button>
           </CardFooter>
+          {mutation.isError && <div className="text-red-500 text-sm">Error: {mutation.error.message}</div>} */}
           <CardFooter className="flex justify-center">
             <h2 className='text-sm mr-1'>Don't have an account?</h2>
-            <Link to="/Register" className=" bg-transparent text-blue-600 text-sm">Sign up</Link>
+            <Link to="/Register" className="bg-transparent text-blue-600 text-sm">Sign up</Link>
           </CardFooter>
         </Card>
         <style>
